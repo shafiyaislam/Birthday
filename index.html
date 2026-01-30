@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For You</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  min-height:100vh;
+  font-family:Inter,sans-serif;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#E8D6F2; /* soft purple background */
+  overflow:hidden;
+}
+
+/* Card colors slightly contrasting with bg */
+.card{
+  position:absolute;
+  inset:0;
+  background:rgba(173, 216, 230, 0.28); /* light cyan for cards */
+  backdrop-filter:blur(22px);
+  border-radius:26px;
+  padding:60px 40px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  opacity:0;
+  pointer-events:none;
+  overflow:hidden;
+}
+
+/* Optional: different card color per card */
+#card1 { background: rgba(255, 182, 193, 0.5); } /* light cyan */
+#card2 { background: rgba(255, 182, 193, 0.28); } /* light pink */
+#card3 { background: rgba(220, 190, 255, 0.5); } /* light green */
+#card4 { background: rgba(255, 250, 205, 0.28); } /* light yellow */
+#card5 { background: rgba(173, 216, 230, 0.28); } /* back to light cyan */
+
+/* Layer 5: Color ripple */
+.bg-wave{
+  position:fixed;
+  inset:0;
+  background:radial-gradient(circle at center,#d8f1ff 0%,#f6d1dc 60%);
+  transform:scale(0);
+  border-radius:50%;
+  z-index:1;
+}
+
+/* Layer 4: Flower texture */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background-image: url("image/flower1.png"), url("flower2.png");
+  background-repeat:repeat;
+  background-size:120px 120px, 120px 120px;
+  background-position:0 0, 60px 60px;
+  opacity:0.15;
+  pointer-events:none;
+  z-index:2;
+}
+
+.container{
+  width:90%;
+  max-width:900px;
+  height:80vh;
+  position:relative;
+  z-index:3;
+}
+
+.card{
+  position:absolute;
+  inset:0;
+  background:rgba(255,255,255,0.28);
+  backdrop-filter:blur(22px);
+  border-radius:26px;
+  padding:60px 40px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  opacity:0;
+  pointer-events:none;
+  overflow:hidden;
+}
+
+.card.active{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.card img{
+  position:absolute;
+  max-width:300px;
+  max-height:300px;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  opacity:0.28;
+  z-index:1;
+  border-radius:20px;
+}
+
+.card .type{
+  position:relative;
+  z-index:2;
+  display:inline-block; 
+  white-space: normal;
+  line-height:1.4;
+}
+
+/* Responsive text sizes using <p> */
+.card p.title{
+  font-family:"Playfair Display", serif;
+  font-size: clamp(2rem, 5vw, 3rem);
+}
+
+.card p.question{
+  font-family:"Playfair Display", serif;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+}
+
+.card .poem{
+  font-family:"Playfair Display",serif;
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  max-width:700px;
+  display:inline-block;
+  white-space: normal;
+}
+
+.card .message{
+  font-family:"Playfair Display",serif;
+  font-size: clamp(1rem, 2.5vw, 2.5rem);
+  display:inline-block;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.sub{
+  margin-top:8px;
+  font-size: clamp(0.8rem, 2vw, 1rem);
+  opacity:0.7;
+}
+
+.btn{
+  padding:14px 32px;
+  border-radius:40px;
+  background:rgba(255,255,255,0.45);
+  border:none;
+  cursor:pointer;
+  font-size:0.9rem;
+  position:relative;
+  z-index:3;
+  margin-top:30px;
+}
+
+.heart{
+  position:absolute;
+  width:60px;
+  height:60px;
+  pointer-events:none;
+  opacity:0.5;
+  transform:translate(0,0) scale(0.9);
+  transition: transform 1.2s ease-out, opacity 1.2s ease-out;
+  z-index:4;
+}
+
+span.letter{opacity:0; display:inline-block; position:relative; white-space:nowrap;}
+span.letter-space{width:0.3em; display:inline-block;}
+.blink-underscore{
+  display:inline-block;
+  font-weight:bold;
+  animation:blink 1s infinite;
+  position:absolute;
+  right:-10px;
+  top:0;
+}
+
+@keyframes blink{
+  0%,50%{opacity:1}
+  51%,100%{opacity:0}
+}
+
+/* Card 5 buttons */
+#yesNoContainer{
+  margin-top:40px;
+  position:relative;
+  width:100%;
+  height:200px;
+}
+
+#noBtn, #yesBtn{
+  width:100px;
+  height:40px;
+  position:absolute;
+}
+
+/* Netlify form */
+#netlifyForm{
+  display:none;
+  flex-direction:column;
+  margin-top:20px;
+  width:80%;
+  max-width:400px;
+}
+
+#netlifyForm input, #netlifyForm textarea{
+  padding:10px;
+  margin-bottom:12px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:1rem;
+  width:100%;
+}
+#card1 .cake{
+  opacity: 0.3;
+}
+#card4 .myself{
+  opacity: 0.035;
+}
+
+#netlifyForm textarea{ resize:none; }
+
+/* Center Yes button class */
+.center-btn{
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translate(-50%, -50%) !important;
+}
+</style>
+</head>
+
+<body>
+
+<div class="bg-wave" id="bgWave"></div>
+
+<div class="container">
+
+  <!-- Card 1 -->
+  <div class="card active" id="card1">
+    <img src="cake1.png" alt="Cake photo" class="cake">
+    <p class="type title">Happy Birthday Shammi</p>
+    <p class="sub type">30 January 2008-26</p>
+    <button class="btn" onclick="nextCard(event,1)">Open</button>
+  </div>
+
+  <!-- Card 2 -->
+  <div class="card" id="card2">
+    <img src="shammi1.png" alt="Shammi photo">
+    <p class="poem type">
+      Raaste alag hain humare, phir bhi dua hai ye tumhare,
+Khushiyo se bhara ho jahan, aur apni manzil bhi ho saath mere
+    </p>
+    <button class="btn" onclick="nextCard(event,2)">Continue</button>
+  </div>
+
+  <!-- Card 3 -->
+  <div class="card" id="card3">
+    <img src="shammi2.png" alt="Shammi photo">
+    <p class="poem type">
+      Though we walk different roads,
+I wish your days be bright, as mine rise on my own
+    </p>
+    <p>-Lord Byron</p>
+    <button class="btn" onclick="nextCard(event,3)">Continue</button>
+  </div>
+
+  <!-- Card 4 -->
+  <div class="card" id="card4">
+    <img src="me1.png" alt="my photo" class="myself">
+    <p class="message type">
+      Happy Birthday, dear Shammi, In this big spacetime where time and space mix like one thing, today is special day the day you came to this strange world. I hope this day shines with happy light, no small troubles pull you down. I wish you happiness that stays inside, not just quick joy from outside. Simple and calm life, with curiosity always young, like child looking at stars. May you keep moving forward, not too fast, but with good meaning and wonder same as I try to do in my own small way. Warm wishes from your ex friend in this big mystery
+    </p>
+    <button class="btn" onclick="nextCard(event,4)">Next</button>
+  </div>
+
+  <!-- Card 5 -->
+  <div class="card" id="card5">
+    <p class="type question" id="questionText">Want to send me some text?</p>
+
+    <!-- Yes / No buttons -->
+    <div id="yesNoContainer">
+      <button class="btn" id="yesBtn" style="left:20px; bottom:20px;">Yes</button>
+      <button class="btn" id="noBtn" style="right:20px; bottom:20px;">No</button>
+    </div>
+
+    <!-- Netlify / Formspree form -->
+    <form name="birthday-message" method="POST" id="netlifyForm">
+      <input type="text" name="name" placeholder="Your Name (is it Shammi?)" required>
+      <textarea name="message" placeholder="Your message..." rows="4" required></textarea>
+      <button type="submit" class="btn">Send</button>
+    </form>
+  </div>
+
+</div>
+
+<script>
+const netlifyForm = document.getElementById("netlifyForm");
+const yesBtn = document.getElementById("yesBtn");
+const noBtn = document.getElementById("noBtn");
+const questionText = document.getElementById("questionText");
+const yesNoContainer = document.getElementById("yesNoContainer");
+
+// Form submission (Formspree)
+if(netlifyForm){
+  netlifyForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    const formData = new FormData(netlifyForm);
+    fetch("https://formspree.io/f/xeekpqbr", {
+      method: "POST",
+      body: formData,
+      headers: { 'Accept': 'application/json' }
+    }).then(response => {
+      if(response.ok){
+        window.location.href = "thanks.html";
+      } else {
+        alert("Oops! There was a problem submitting your form.");
+      }
+    }).catch(error => {
+      alert("Oops! There was a problem submitting your form.");
+    });
+  });
+}
+
+// Animate letters with proper spaces
+function animateTextLetter(el){
+  if(!el) return;
+  const text = el.innerText;
+  el.innerHTML = "";
+  let lastCursor = null;
+
+  const words = text.split(" ");
+
+  words.forEach((word, wi) => {
+    const wordSpan = document.createElement("span");
+    wordSpan.style.whiteSpace = "nowrap";
+    el.appendChild(wordSpan);
+
+    for(let i=0; i<word.length; i++){
+      const char = word[i];
+      const span = document.createElement("span");
+      span.className = "letter";
+      span.innerText = char;
+      wordSpan.appendChild(span);
+
+      const showCursor = !/[.,!?;:]/.test(char);
+
+      gsap.to(span, {
+        opacity: 1,
+        delay: wi*0.3 + i*0.08,
+        duration: 0.35,
+        onStart: () => {
+          if(showCursor && lastCursor) lastCursor.remove();
+          if(showCursor){
+            const cursor = document.createElement("span");
+            cursor.className = "blink-underscore";
+            cursor.innerText = "_";
+            span.appendChild(cursor);
+            lastCursor = cursor;
+          }
+        }
+      });
+    }
+
+    // add space
+    const space = document.createElement("span");
+    space.className = "letter-space";
+    space.innerHTML = " ";
+    el.appendChild(space);
+  });
+}
+
+// Card transitions
+function nextCard(e, n){
+  spawnHeart(e.currentTarget);
+  rippleBackground(e);
+
+  const current = document.getElementById("card" + n);
+  const next = document.getElementById("card" + (n + 1));
+
+  gsap.to(current, {
+    opacity: 0,
+    duration: 0.6,
+    onComplete: () => {
+      current.classList.remove("active");
+      if(next){
+        next.classList.add("active");
+        animateTextLetter(next.querySelector(".type"));
+      }
+    }
+  });
+}
+
+// Ripple effect
+function rippleBackground(e){
+  const wave = document.getElementById("bgWave");
+  const x = e.clientX;
+  const y = e.clientY;
+  wave.style.transformOrigin = `${x}px ${y}px`;
+  gsap.fromTo(wave, {scale:0}, {scale:3, duration:1.2, ease:"power2.out"});
+}
+
+// Heart animation using GSAP
+function spawnHeart(button){
+  const rect = button.getBoundingClientRect();
+  const centerX = rect.left + rect.width/2;
+  const centerY = rect.top + rect.height/2;
+
+  const heart = document.createElement("img");
+  heart.src = "image/love.png";
+  heart.className = "heart";
+  document.body.appendChild(heart);
+
+  heart.style.left = centerX - 30 + "px";
+  heart.style.top = centerY - 30 + "px";
+
+  const dx = (Math.random() - 0.5) * 40;
+  const dy = - (120 + Math.random() * 80);
+
+  gsap.to(heart, {
+    x: dx,
+    y: dy,
+    scale: 1.1,
+    opacity: 0,
+    duration: 1.2,
+    ease: "power2.out",
+    onComplete: () => heart.remove()
+  });
+}
+
+// Card 5 Yes/No logic
+yesBtn.addEventListener("click", () => {
+  questionText.style.display = "none";
+  yesNoContainer.style.display = "none";
+  netlifyForm.style.display = "flex";
+  animateTextLetter(netlifyForm.querySelector("textarea"));
+});
+
+noBtn.addEventListener("click", () => {
+  noBtn.remove();
+  yesBtn.innerText = "Okay";
+  questionText.innerText = "please, don't say no for this time";
+  animateTextLetter(questionText);
+
+  // Center the Yes button
+  yesBtn.classList.add("center-btn");
+});
+
+// Animate initial card text
+animateTextLetter(document.querySelector("#card1 .type"));
+</script>
+
+</body>
+</html>
