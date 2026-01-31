@@ -260,58 +260,44 @@ span.letter-space{width:0.3em; display:inline-block;}
     height: 100%;
 }
 
-/* Upper right speaker */
 .rk-audio-icon-right {
     position: fixed;
     top: 16px;
     right: 16px;
-    width: 40px;
-    height: 40px;
+    width: 28px;   /* 30% smaller than 40px */
+    height: 28px;
     cursor: pointer;
     z-index: 9999;
-    transition: transform 0.3s;
 }
 
-/* Upper left speaker */
 .rk-audio-icon-left {
     position: fixed;
     top: 16px;
     left: 16px;
-    width: 40px;
-    height: 40px;
+    width: 28px;
+    height: 28px;
     cursor: pointer;
     z-index: 9999;
-    transition: transform 0.3s;
-}
-
-.rk-playing-right {
-    transform: rotate(15deg);
-}
-
-.rk-playing-left {
-    transform: rotate(-15deg);
 }
 </style>
 
-<!-- ========== AUDIO FILES ========== -->
 <audio id="rkAudioRight" src="audio1.mp3"></audio>
-<audio id="rkAudioLeft" src="ddlj-1.m4a"></audio>
+<audio id="rkAudioLeft">
+  <source src="ddlj-1.m4a" type="audio/mp4">
+</audio>
 
-<!-- ========== RIGHT ICON (OFF) ========== -->
 <div id="rkToggleRight" class="rk-audio-icon-right">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="rk-size-6">
 <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 0 0 1.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06ZM17.78 9.22a.75.75 0 1 0-1.06 1.06L18.44 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06l1.72-1.72 1.72 1.72a.75.75 0 1 0 1.06-1.06L20.56 12l1.72-1.72a.75.75 0 1 0-1.06-1.06l-1.72 1.72-1.72-1.72Z"/>
 </svg>
 </div>
 
-<!-- ========== LEFT ICON (OFF) ========== -->
 <div id="rkToggleLeft" class="rk-audio-icon-left">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="rk-size-6">
 <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 0 0 1.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06ZM17.78 9.22a.75.75 0 1 0-1.06 1.06L18.44 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06l1.72-1.72 1.72 1.72a.75.75 0 1 0 1.06-1.06L20.56 12l1.72-1.72a.75.75 0 1 0-1.06-1.06l-1.72 1.72-1.72-1.72Z"/>
 </svg>
 </div>
 
-<!-- ========== SCRIPT (AFTER HTML) ========== -->
 <script>
 const speakerOnSVG = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="rk-size-6">
@@ -321,21 +307,16 @@ const speakerOnSVG = `
 
 function rampVolume(audio, target = 0.25, duration = 2000) {
     audio.volume = 0;
-    const steps = 40;
-    const stepTime = duration / steps;
     let step = 0;
-
+    const steps = 40;
     const interval = setInterval(() => {
         step++;
         audio.volume = (target / steps) * step;
-        if (step >= steps) {
-            clearInterval(interval);
-            audio.volume = target;
-        }
-    }, stepTime);
+        if (step >= steps) clearInterval(interval);
+    }, duration / steps);
 }
 
-/* RIGHT AUDIO */
+/* RIGHT */
 const ar = document.getElementById('rkAudioRight');
 const tr = document.getElementById('rkToggleRight');
 const offR = tr.innerHTML;
@@ -347,18 +328,16 @@ tr.onclick = () => {
         ar.play();
         rampVolume(ar);
         tr.innerHTML = speakerOnSVG;
-        tr.classList.add('rk-playing-right');
         pr = true;
     } else {
         ar.pause();
         ar.currentTime = 0;
         tr.innerHTML = offR;
-        tr.classList.remove('rk-playing-right');
         pr = false;
     }
 };
 
-/* LEFT AUDIO */
+/* LEFT */
 const al = document.getElementById('rkAudioLeft');
 const tl = document.getElementById('rkToggleLeft');
 const offL = tl.innerHTML;
@@ -370,24 +349,15 @@ tl.onclick = () => {
         al.play();
         rampVolume(al);
         tl.innerHTML = speakerOnSVG;
-        tl.classList.add('rk-playing-left');
         pl = true;
     } else {
         al.pause();
         al.currentTime = 0;
         tl.innerHTML = offL;
-        tl.classList.remove('rk-playing-left');
         pl = false;
     }
 };
-
-al.addEventListener('ended', () => {
-    tl.innerHTML = offL;
-    tl.classList.remove('rk-playing-left');
-    pl = false;
-});
-  </script>
-
+</script>
 <div class="container">
 
   <!-- Card 1 -->
